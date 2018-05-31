@@ -73,7 +73,7 @@ export default function createAbsoluteGrid(
     }
 
     render() {
-      if (!this.state.layoutWidth || !this.props.items.length) {
+      if (!this.state.layoutWidth) {
         return <div ref={node => (this.container = node)} />
       }
 
@@ -155,7 +155,7 @@ export default function createAbsoluteGrid(
     }
 
     componentDidMount() {
-      //If responsive, listen for resize
+      // If responsive, listen for resize
       if (this.props.responsive) {
         window.addEventListener('resize', this.onResize)
       }
