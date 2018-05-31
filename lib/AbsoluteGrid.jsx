@@ -1,17 +1,24 @@
-'use strict';
+'use strict'
 
-import React, { Component, PureComponent } from 'react';
-import { debounce, sortBy } from 'lodash';
+import React, { Component, PureComponent } from 'react'
+import { debounce, sortBy } from 'lodash'
 
-import createDisplayObject from './BaseDisplayObject.jsx';
-import DragManager from './DragManager.js';
-import LayoutManager from './LayoutManager.js';
-import PropTypes from 'prop-types';
+import createDisplayObject from './BaseDisplayObject.jsx'
+import DragManager from './DragManager.js'
+import LayoutManager from './LayoutManager.js'
+import PropTypes from 'prop-types'
 
-export default function createAbsoluteGrid(DisplayObject, displayProps = {}, forceImpure = false) {
-
-  const Comp = forceImpure ? Component : PureComponent;
-  const WrappedDisplayObject = createDisplayObject(DisplayObject, displayProps, forceImpure);
+export default function createAbsoluteGrid(
+  DisplayObject,
+  displayProps = {},
+  forceImpure = false
+) {
+  const Comp = forceImpure ? Component : PureComponent
+  const WrappedDisplayObject = createDisplayObject(
+    DisplayObject,
+    displayProps,
+    forceImpure
+  )
 
   return class extends Comp {
     static defaultProps = {
@@ -26,10 +33,10 @@ export default function createAbsoluteGrid(DisplayObject, displayProps = {}, for
       dragEnabled: false,
       animation: 'transform 300ms ease',
       zoom: 1,
-      onMove: ()=>{},
-      onDragStart: ()=>{},
-      onDragMove: ()=>{},
-      onDragEnd: ()=>{}
+      onMove: () => {},
+      onDragStart: () => {},
+      onDragMove: () => {},
+      onDragEnd: () => {}
     }
 
     static propTypes = {
@@ -50,27 +57,28 @@ export default function createAbsoluteGrid(DisplayObject, displayProps = {}, for
       onDragEnd: PropTypes.func
     }
 
-    constructor(props, context){
-      super(props, context);
-      this.onResize = debounce(this.onResize, 150);
+    constructor(props, context) {
+      super(props, context)
+      this.onResize = debounce(this.onResize, 150)
       this.dragManager = new DragManager(
         this.props.onMove,
         this.props.onDragStart,
         this.props.onDragEnd,
         this.props.onDragMove,
-        this.props.keyProp);
+        this.props.keyProp
+      )
       this.state = {
         layoutWidth: 0
-      };
+      }
     }
 
     render() {
-      if(!this.state.layoutWidth || !this.props.items.length){
-        return <div ref={node => this.container = node}></div>;
+      if (!this.state.layoutWidth || !this.props.items.length) {
+        return <div ref={node => (this.container = node)} />
       }
 
-      let filteredIndex = 0;
-      let sortedIndex = {};
+      let filteredIndex = 0
+      let sortedIndex = {}
 
       /*
        If we actually sorted the array, React would re-render the DOM nodes
@@ -79,17 +87,17 @@ export default function createAbsoluteGrid(DisplayObject, displayProps = {}, for
        eliminates gaps and duplicate sorts
        */
       sortBy(this.props.items, this.props.sortProp).forEach(item => {
-        if(!item[this.props.filterProp]){
-          const key = item[this.props.keyProp];
-          sortedIndex[key] = filteredIndex;
-          filteredIndex++;
+        if (!item[this.props.filterProp]) {
+          const key = item[this.props.keyProp]
+          sortedIndex[key] = filteredIndex
+          filteredIndex++
         }
-      });
+      })
 
-      const itemsLength = this.props.items.length;
+      const itemsLength = this.props.items.length
       const gridItems = this.props.items.map(item => {
-        const key = item[this.props.keyProp];
-        const index = sortedIndex[key];
+        const key = item[this.props.keyProp]
+        const index = sortedIndex[key]
         return (
           <WrappedDisplayObject
             item={item}
@@ -107,62 +115,73 @@ export default function createAbsoluteGrid(DisplayObject, displayProps = {}, for
             dragEnabled={this.props.dragEnabled}
             dragManager={this.dragManager}
           />
-        );
-      });
+        )
+      })
 
       const options = {
         itemWidth: this.props.itemWidth,
         itemHeight: this.props.itemHeight,
         verticalMargin: this.props.verticalMargin,
         zoom: this.props.zoom
-      };
-      const layout = new LayoutManager(options, this.state.layoutWidth);
+      }
+      const layout = new LayoutManager(options, this.state.layoutWidth)
       const gridStyle = {
         position: 'relative',
         display: 'block',
-        height: layout.getTotalHeight(filteredIndex)
-      };
+        height: layout.getTotalHeight(
+          this.props.lastItem ? filteredIndex + 1 : filteredIndex
+        )
+      }
+
+      const lastItemStyle = layout.getStyle(
+        gridItems.length,
+        this.props.animation,
+        false
+      )
+
+      console.log('item style', lastItemStyle)
+
+      const LastItem =
+        this.props.lastItem &&
+        React.cloneElement(this.props.lastItem, { style: lastItemStyle })
 
       return (
         <div
           style={gridStyle}
           className="absoluteGrid"
-          ref={node => this.container = node}
+          ref={node => (this.container = node)}
         >
-          {gridItems}
+          {this.props.lastItem ? gridItems.concat(LastItem) : gridItems}
         </div>
-      );
+      )
     }
 
     componentDidMount() {
       //If responsive, listen for resize
-      if(this.props.responsive){
-        window.addEventListener('resize', this.onResize);
+      if (this.props.responsive) {
+        window.addEventListener('resize', this.onResize)
       }
-      this.onResize();
+      this.onResize()
     }
 
     componentWillUnmount() {
-      window.removeEventListener('resize', this.onResize);
+      window.removeEventListener('resize', this.onResize)
     }
 
     onResize = () => {
       if (window.requestAnimationFrame) {
-        window.requestAnimationFrame(this.getDOMWidth);
+        window.requestAnimationFrame(this.getDOMWidth)
       } else {
-        setTimeout(this.getDOMWidth, 66);
+        setTimeout(this.getDOMWidth, 66)
       }
     }
 
     getDOMWidth = () => {
-      const width = this.container && this.container.clientWidth;
+      const width = this.container && this.container.clientWidth
 
-      if(this.state.layoutWidth !== width){
-        this.setState({layoutWidth: width});
+      if (this.state.layoutWidth !== width) {
+        this.setState({ layoutWidth: width })
       }
-
     }
-
-
   }
 }
