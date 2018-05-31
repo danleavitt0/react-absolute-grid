@@ -139,8 +139,6 @@ export default function createAbsoluteGrid(
         false
       )
 
-      console.log('item style', lastItemStyle)
-
       const LastItem =
         this.props.lastItem &&
         React.cloneElement(this.props.lastItem, { style: lastItemStyle })
@@ -151,7 +149,7 @@ export default function createAbsoluteGrid(
           className="absoluteGrid"
           ref={node => (this.container = node)}
         >
-          {this.props.lastItem ? gridItems.concat(LastItem) : gridItems}
+          {this.props.lastItem ? (gridItems || []).concat(LastItem) : gridItems}
         </div>
       )
     }
